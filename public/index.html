@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <title>CS4241 Assignment 2</title>
+    <meta charset='utf-8' />
+    <link rel='stylesheet' href='css/main.css' />
+    <script src='js/main.js' defer></script>
+    <!-- get rid of favicon error -->
+    <link rel='icon' href='data:;base64,iVBORw0KGgo=' />
+  </head>
+  <body>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tasks</th>
+          <th>Creation Date</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th>Time to Complete</th>
+          <th>Edit</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="task-list">
+      </tbody>
+    </table>
+
+    <form id="task-form" method="post" action="/data">
+      <p> 
+        <label for="task">Task Name:</label>
+        <input type="text" id="task" name="task" required />
+      </p>
+      <p>
+        <label for="creation-date">Creation Date:</label>
+        <input type="date" id="creation-date" name="creationDate" required />
+      </p>
+      <p>
+        <label for="deadline">Deadline:</label>
+        <input type="date" id="deadline" name="deadline" required/>
+      </p>
+      <p>
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+          <option value="not started">Not Started</option>
+          <option value="in progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+      </p>
+      <button class="button">Submit</button>
+    </form>
+
+    <div class="edit" id="editor">
+      <div>
+          <form id="edit-form">
+            <input type="hidden" id="edit-id">
+            <label>Task:</label><br>
+            <input type="text" id="edit-task" required><br><br>
+      
+            <label>Deadline:</label><br>
+            <input type="date" id="edit-deadline" required><br><br>
+      
+            <label>Status:</label><br>
+            <select id="edit-status">
+              <option value="not started">Not Started</option>
+              <option value="in progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select><br><br>
+      
+            <button class="editor-button"  type="submit">Save Changes</button>
+            <button class="editor-button" type="button" id="cancel-edit">Cancel</button>
+          </form>
+        </div>
+      </div>
+  </body>
+</html>
