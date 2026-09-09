@@ -1,15 +1,16 @@
-const http = require( 'http' ),
-      fs   = require( 'fs' ),
-      // IMPORTANT: you must run `npm install` in the directory for this assignment
-      // to install the mime library if you're testing this on your local machine.
-      // On Render, make sure `npm install` is your build command.
-      mime = require( 'mime' ),
-      dir  = 'public/',
-      port = 3000
+require('dotenv').config();
+const express = require('express');
+const { MongoClient, ObjectId } = require('mongodb');
 
-let appdata = [
-  {id: 1, task: 'test task', creationDate: '2026-08-28', deadline: '2026-09-01', status: 'not started', timeToComplete: 3}
-]
+
+const path = require('path');
+const app = express();
+const port = process.env.PORT || 3000;
+
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
+let db = null;
+let collection = null;
 
 const timeToComplete = function(creationDate, deadline) {
   const creation = new Date(creationDate)
@@ -19,133 +20,103 @@ const timeToComplete = function(creationDate, deadline) {
   return diffDays
 }
 
-const server = http.createServer( function( request,response ) {
-  if( request.method === 'GET' ) {
-    handleGet( request, response )    
-  }else if( request.method === 'POST' ){
-    handlePost( request, response ) 
-  } else if (request.method === 'DELETE') {
-    handleDelete(request, response)
-  } else if (request.method === 'PUT') {
-    handleEdit(request, response)
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/data', async function(request, response) {
+  try {
+    const username = request.query.username || "guest"; 
+    const userTasks = await collection.find({ username: username }).toArray();
+    response.json(userTasks);
+  } catch (error) {
+    response.status(500).json({ error: "failed to fetch data" });
   }
-})
+});
 
-const handleGet = function( request, response ) {  
-  if (request.url === '/data') {
-    response.writeHead(200, { 'Content-Type': 'application/json' })
-    response.end(JSON.stringify(appdata))
-    return
+
+app.post(['/data', '/submit'], async function(request, response) {
+  try {
+    const data = request.body;
+    const creationDate = data.creationDate || data['creation-date'] || '';
+    const deadline = data.deadline || '';
+    const username = data.username || "guest"; 
+
+    const task = {
+      username, 
+      task: data.task,
+      creationDate,
+      deadline,
+      status: data.status,
+      timeToComplete: timeToComplete(creationDate, deadline)
+    };
+
+    await collection.insertOne(task);
+    
+    const updatedTasks = await collection.find({ username: username }).toArray();
+    response.json(updatedTasks);
+  } catch (error) {
+    response.status(500).json({ error: "failed to insert data" });
   }
-  
-  const filename = dir + request.url.slice(1) 
+});
 
-  if( request.url === '/' ) {
-    sendFile( response, 'public/index.html' )
-  }else{
-    sendFile( response, filename )
+app.delete('/delete/:id', async function(request, response) {
+  try {
+    const id = request.params.id;
+    const username = request.query.username || "guest"; 
+    
+    await collection.deleteOne({ _id: new ObjectId(id), username: username });
+    
+    const updatedTasks = await collection.find({ username: username }).toArray();
+    response.json(updatedTasks);
+  } catch (error) {
+    response.status(500).json({ error: "failed to delete data" });
   }
-}
+});
 
-const handlePost = function( request, response ) {
-  if (request.url === '/data' || request.url === '/submit') {
-    let dataString = ''
+app.put('/edit/:id', async function(request, response) {
+  try {
+    const id = request.params.id;
+    const data = request.body;
+    const username = data.username || "guest";
 
-    request.on( 'data', function( data ) {
-        dataString += data 
-    })
-    request.on( 'end', function() {
-      try {
-        const data = JSON.parse(dataString)
-        const creationDate = data.creationDate || data['creation-date'] || ''
-        const deadline = data.deadline || ''
-        const task = {
-          id: Date.now(),
-          task: data.task,
-          creationDate,
-          deadline,
-          status: data.status,
-          timeToComplete: timeToComplete(creationDate, deadline)
-        }
-        appdata.push(task)
-        response.writeHead(200, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify(appdata))
-      } catch (err) {
-        response.writeHead(400, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify({ error: 'Invalid JSON payload' }))
-      } 
-    })
-  } else {
-    response.writeHeader( 404 )
-    response.end( '404 Error: Not Found' )
-  }
-}
-
-const handleDelete = function(request, response) {
-  const id = request.url.split('/')[2]
-  appdata = appdata.filter(item => item.id !== parseInt(id))
-  response.writeHead(200, { 'Content-Type': 'application/json' })
-  response.end(JSON.stringify(appdata))
-}
-
-const handleEdit = function(request, response) {
-
-  const id = parseInt(request.url.split('/')[2])
-  let dataString = ''
-
-  request.on('data', function(data) {
-    dataString += data
-  })
-
-  request.on('end', function() {
-    try {
-      const data = JSON.parse(dataString)
-      
-      appdata = appdata.map(item => {
-        if (item.id === id) {
-          const newTimeToComplete = timeToComplete(item.creationDate, data.deadline)
-          
-          return {
-            ...item,
-            task: data.task,
-            deadline: data.deadline,
-            status: data.status,
-            timeToComplete: newTimeToComplete
-          }
-        }
-        return item
-      })
-
-      response.writeHead(200, { 'Content-Type': 'application/json' })
-      response.end(JSON.stringify(appdata))
-    } catch (err) {
-      response.writeHead(400, { 'Content-Type': 'application/json' })
-      response.end(JSON.stringify({ error: 'Invalid JSON payload' }))
+    const existingTask = await collection.findOne({ _id: new ObjectId(id) });
+    if (!existingTask) {
+      return response.status(404).json({ error: "task not found" });
     }
-  })
+
+    await collection.updateOne(
+      { _id: new ObjectId(id), username: username },
+      {
+        $set: {
+          task: data.task,
+          deadline: data.deadline,
+          status: data.status,
+          timeToComplete: timeToComplete(existingTask.creationDate, data.deadline)
+        }
+      }
+    );
+
+    const updatedTasks = await collection.find({ username: username }).toArray();
+    response.json(updatedTasks);
+  } catch (error) {
+    response.status(500).json({ error: "failed to update data" });
+  }
+});
+
+async function run() {
+  try {
+    await client.connect();
+    db = client.db("a3db");
+    collection = db.collection("tasks");
+    console.log("connected");
+
+    app.listen(port, function() {
+      console.log(`Server is listening on port ${port}`);
+    });
+  } catch (err) {
+    console.error("couldnt connect to db", err);
+    process.exit(1);
+  }
 }
 
-
-const sendFile = function( response, filename ) {
-   const type = mime.getType( filename ) 
-
-   fs.readFile( filename, function( err, content ) {
-
-     // if the error = null, then we've loaded the file successfully
-     if( err === null ) {
-
-       // status code: https://httpstatuses.com
-       response.writeHeader( 200, { 'Content-Type': type })
-       response.end( content )
-
-     }else{
-
-       // file not found, error code 404
-       response.writeHeader( 404 )
-       response.end( '404 Error: File Not Found' )
-
-     }
-   })
-}
-
-server.listen( process.env.PORT || port )
+run();

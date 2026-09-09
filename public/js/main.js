@@ -1,4 +1,4 @@
-// FRONT-END (CLIENT) JAVASCRIPT HERE
+const currentUsername = prompt("temp username testing")
 
 const form = document.querySelector('#task-form')
 const taskList = document.querySelector('#task-list')
@@ -14,24 +14,23 @@ const displayTasks = function(tasks) {
       <td>${item.deadline}</td>
       <td>${item.status}</td>
       <td>${item.timeToComplete}</td>
-      <td><button id="edit-button" class="edit-button" data-id="${item.id}">Edit</button></td>
-      <td><button id="delete-button" class="delete-button" data-id="${item.id}">Delete</button></td>
+      <td><button id="edit-button" class="edit-button" data-id="${item._id}">Edit</button></td>
+      <td><button id="delete-button" class="delete-button" data-id="${item._id}">Delete</button></td>
     </tr>
   `).join('')
 }
 
 const loadTasks = async function() {
-  const response = await fetch('/data')
+  const response = await fetch(`/data?username=${encodeURIComponent(currentUsername)}`);
   displayTasks(await response.json())
 }
 const submit = async function( event ) {
-  // stop form submission from trying to load
-  // a new .html page for displaying results...
-  // this was the original browser behavior and still
-  // remains to this day
   event.preventDefault()
   
   const formData = Object.fromEntries(new FormData(form))
+
+  formData.username = currentUsername; 
+
   const body = JSON.stringify(formData)
   const response = await fetch( '/data', {
     method:'POST',
@@ -51,21 +50,21 @@ taskList.addEventListener('click', async function(event) {
     return
   }
   if (event.target.classList.contains('delete-button')) {
-    const response = await fetch(`/delete/${event.target.dataset.id}`, {
-    method: 'DELETE'
-  })
-  displayTasks(await response.json())
+    const response = await fetch(`/delete/${event.target.dataset.id}?username=${encodeURIComponent(currentUsername)}`, {
+      method: 'DELETE'
+    });
+    displayTasks(await response.json());
   }
 
   if (event.target.classList.contains('edit-button')) {
-    const taskId = parseInt(event.target.dataset.id)
-    
-    const res = await fetch('/data')
+    const taskId = event.target.dataset.id
+        
+    const res = await fetch(`/data?username=${encodeURIComponent(currentUsername)}`) 
     const tasks = await res.json()
-    const targetTask = tasks.find(item => item.id === taskId)
+    const targetTask = tasks.find(item => item._id === taskId)
 
     if (targetTask) {
-      document.querySelector('#edit-id').value = targetTask.id
+      document.querySelector('#edit-id').value = targetTask._id
       document.querySelector('#edit-task').value = targetTask.task
       document.querySelector('#edit-deadline').value = targetTask.deadline
       document.querySelector('#edit-status').value = targetTask.status
@@ -83,6 +82,7 @@ editForm.addEventListener('submit', async function(event) {
   editor.style.display = 'none'
   const id = document.querySelector('#edit-id').value
   const updatedData = {
+    username: currentUsername,
     task: document.querySelector('#edit-task').value,
     deadline: document.querySelector('#edit-deadline').value,
     status: document.querySelector('#edit-status').value

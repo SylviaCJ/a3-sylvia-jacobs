@@ -1,76 +1,85 @@
 <!doctype html>
 <html lang='en'>
   <head>
-    <title>CS4241 Assignment 2</title>
+    <title>CS4241 Assignment 3</title>
     <meta charset='utf-8' />
-    <link rel='stylesheet' href='css/main.css' />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src='js/main.js' defer></script>
     <!-- get rid of favicon error -->
     <link rel='icon' href='data:;base64,iVBORw0KGgo=' />
+    <style> body { font-size: 14px; } </style>
   </head>
-  <body>
+  <body class="container">
+   <main class="grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <section>
+          <table>
+            <thead>
+              <tr>
+                <th>Tasks</th>
+                <th>Creation Date</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Time to Complete</th>
+                <th>Edit</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="task-list">
+            </tbody>
+          </table>
+      </section>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Tasks</th>
-          <th>Creation Date</th>
-          <th>Deadline</th>
-          <th>Status</th>
-          <th>Time to Complete</th>
-          <th>Edit</th>
-          <th>Delete</th>
-        </tr>
-      </thead>
-      <tbody id="task-list">
-      </tbody>
-    </table>
+      <section>
+          <form id="task-form" method="post" action="/data">
+            <label for="task">Task Name:
+              <input type="text" id="task" name="task" required />
+            </label>
+            
+            <label for="creation-date">Creation Date:
+              <input type="date" id="creation-date" name="creationDate" required />
+            </label>
+            
+            <label for="deadline">Deadline:
+              <input type="date" id="deadline" name="deadline" required/>
+            </label>
+            
+            <label for="status">Status:
+              <select id="status" name="status">
+                <option value="not started">Not Started</option>
+                <option value="in progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            
+            <button type="submit">Submit</button>
+          </form>
+      </section>
+    </main>
 
-    <form id="task-form" method="post" action="/data">
-      <p> 
-        <label for="task">Task Name:</label>
-        <input type="text" id="task" name="task" required />
-      </p>
-      <p>
-        <label for="creation-date">Creation Date:</label>
-        <input type="date" id="creation-date" name="creationDate" required />
-      </p>
-      <p>
-        <label for="deadline">Deadline:</label>
-        <input type="date" id="deadline" name="deadline" required/>
-      </p>
-      <p>
-        <label for="status">Status:</label>
-        <select id="status" name="status">
-          <option value="not started">Not Started</option>
-          <option value="in progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
-      </p>
-      <button class="button">Submit</button>
-    </form>
 
-    <div class="edit" id="editor">
-      <div>
-          <form id="edit-form">
-            <input type="hidden" id="edit-id">
-            <label>Task:</label><br>
-            <input type="text" id="edit-task" required><br><br>
-      
-            <label>Deadline:</label><br>
-            <input type="date" id="edit-deadline" required><br><br>
-      
-            <label>Status:</label><br>
+    <dialog id="editor">
+        <form id="edit-form">
+          <input type="hidden" id="edit-id">
+          
+          <label for="edit-task">Task:
+            <input type="text" id="edit-task" required>
+          </label>
+    
+          <label for="edit-deadline">Deadline:
+            <input type="date" id="edit-deadline" required>
+          </label>
+    
+          <label for="edit-status">Status:
             <select id="edit-status">
               <option value="not started">Not Started</option>
               <option value="in progress">In Progress</option>
               <option value="completed">Completed</option>
-            </select><br><br>
-      
-            <button class="editor-button"  type="submit">Save Changes</button>
-            <button class="editor-button" type="button" id="cancel-edit">Cancel</button>
-          </form>
-        </div>
-      </div>
+            </select>
+          </label>
+    
+            <button type="button" class="secondary" id="cancel-edit">Cancel</button>
+            <button type="submit">Save Changes</button>
+        </form>
+    </dialog>
   </body>
 </html>
