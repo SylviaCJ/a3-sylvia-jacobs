@@ -9,7 +9,9 @@ https://a3-sylvia-jacobs.onrender.com
 
 ## Technical Achievements
 - **0Auth authentication**: I used OAuth authentication via the GitHub strategy, i think. it works for my github account at least
-- **100% on lighthouse tests**: 
+- **100% on lighthouse tests**:
+- <img width="548" height="181" alt="image" src="https://github.com/user-attachments/assets/17eb4e9f-040e-4a1d-86ef-be5f4e79f247" />
+
 - **List up to five Express middleware packages**: 
     1. express-session: manages user sessions, establish server-based sessions
     2. passport: authentication strategies using 0auth 
