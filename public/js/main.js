@@ -1,5 +1,3 @@
-const currentUsername = prompt("temp username testing")
-
 const form = document.querySelector('#task-form')
 const taskList = document.querySelector('#task-list')
 const editor = document.querySelector('#editor')
@@ -21,15 +19,13 @@ const displayTasks = function(tasks) {
 }
 
 const loadTasks = async function() {
-  const response = await fetch(`/data?username=${encodeURIComponent(currentUsername)}`);
+  const response = await fetch('/data');
   displayTasks(await response.json())
 }
 const submit = async function( event ) {
   event.preventDefault()
   
   const formData = Object.fromEntries(new FormData(form))
-
-  formData.username = currentUsername; 
 
   const body = JSON.stringify(formData)
   const response = await fetch( '/data', {
@@ -50,7 +46,7 @@ taskList.addEventListener('click', async function(event) {
     return
   }
   if (event.target.classList.contains('delete-button')) {
-    const response = await fetch(`/delete/${event.target.dataset.id}?username=${encodeURIComponent(currentUsername)}`, {
+    const response = await fetch(`/delete/${event.target.dataset.id}`, {
       method: 'DELETE'
     });
     displayTasks(await response.json());
@@ -59,7 +55,7 @@ taskList.addEventListener('click', async function(event) {
   if (event.target.classList.contains('edit-button')) {
     const taskId = event.target.dataset.id
         
-    const res = await fetch(`/data?username=${encodeURIComponent(currentUsername)}`) 
+    const res = await fetch('/data') 
     const tasks = await res.json()
     const targetTask = tasks.find(item => item._id === taskId)
 
@@ -82,7 +78,6 @@ editForm.addEventListener('submit', async function(event) {
   editor.style.display = 'none'
   const id = document.querySelector('#edit-id').value
   const updatedData = {
-    username: currentUsername,
     task: document.querySelector('#edit-task').value,
     deadline: document.querySelector('#edit-deadline').value,
     status: document.querySelector('#edit-status').value
