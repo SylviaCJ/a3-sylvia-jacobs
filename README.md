@@ -8,11 +8,11 @@ https://a3-sylvia-jacobs.onrender.com
 - i used pico css because classless seemed easier and pico was the first option and it worked well so i didnt feel a need to try more. I didnt really change anything, i did make some things smaller but thats not rly changing the framework i think
 
 ## Technical Achievements
-- **0Auth authentication**: I used OAuth authentication via the GitHub strategy, i think. it works for my github account at least
+- **OAuth authentication**: I used OAuth authentication via the GitHub strategy, i think. it works for my github account at least
 - **100% on lighthouse tests**: 
 - **List up to five Express middleware packages**: 
     1. express-session: manages user sessions, establish server-based sessions
-    2. passport: authentication strategies using 0auth 
+    2. passport: authentication strategies using Oauth 
     3. passport-github2: authentication strategy for github specifically through passport
 ### Design/Evaluation Achievements
 - Neither Design Achievement was done
